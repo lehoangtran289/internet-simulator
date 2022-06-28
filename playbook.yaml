@@ -1,0 +1,52 @@
+# ANSIBLE FOR SINGLE AREA OSPF
+
+# PREREQUISITES: 
+# config.sh -> enable ip for all interfaces
+# set env in /etc/environment -> NAME=R1, ID=1.1.1.1
+
+# for specific router's routing, write `routing.txt` consisting of all area's routing for that router
+# e.g: `routing.txt`
+# network 192.168.0.0/24 area 0\nnetwork 192.168.1.0/24 area 1
+
+
+---
+- hosts: as2
+  tasks:
+    # - name:
+      # command: /bin/sh ~/config.sh
+    - copy:
+        src: sysctl.conf
+        dest: /etc/sysctl.conf
+      become: yes
+    - copy:
+        src: zebra.conf
+        dest: /etc/quagga/zebra.conf
+      become: yes
+    - copy:
+        src: ospfd.conf
+        dest: /etc/quagga/ospfd.conf
+      become: yes
+    - name:
+      command: sed -i "s/%%name%%/$NAME/g" /etc/quagga/zebra.conf
+      become: yes
+
+    # routing for a specific router
+    # - copy:
+    #     src: routing.txt
+    #     dest: routing.txt
+    # - name:
+    #   command: sed -i "s/%%routing%%/$(cat routing.txt)/" /etc/quagga/ospfd.conf
+
+    - name:
+      command: sed -i "s/%%id%%/$ID/g" /etc/quagga/ospfd.conf
+      become: yes
+    - shell: mkdir -p /var/log/quagga/ && chown quagga:quagga /var/log/quagga/
+      become: yes
+    - shell: chown quagga:quagga /etc/quagga/*.conf
+      become: yes
+    - service:
+        name: zebra
+        state: started
+    - service:
+        name: ospfd
+        state: started
