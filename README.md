@@ -5,8 +5,11 @@
 
 ### kiem tra frr status
 > sudo nano /etc/frr/deamons
+
 > sudo rm /etc/frr/frr.conf
+
 > sudo service frr restart
+
 > sudo service frr status
 
 ### catch package
